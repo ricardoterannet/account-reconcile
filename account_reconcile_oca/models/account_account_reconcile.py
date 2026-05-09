@@ -1,7 +1,11 @@
 # Copyright 2023 Dixmit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+import logging
+
 from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class CharId(fields.Id):
@@ -170,17 +174,19 @@ class AccountAccountReconcile(models.Model):
     def _recompute_data(self, data):
         new_data = {"data": [], "counterparts": data["counterparts"]}
         counterparts = data["counterparts"]
+        lines_records = self.env["account.move.line"].browse(counterparts)
+        sorted_lines = lines_records.sorted(key=lambda l: abs(l.amount_residual), reverse=True)
         amount = 0.0
-        for line_id in counterparts:
+        for line in sorted_lines:
             lines = self._get_reconcile_line(
-                self.env["account.move.line"].browse(line_id),
+                line,
                 "other",
                 is_counterpart=True,
                 max_amount=amount,
                 move=True,
             )
             new_data["data"] += lines
-            amount += sum(line["amount"] for line in lines)
+            amount += sum(l["amount"] for l in lines)
         return new_data
 
     def clean_reconcile(self):

@@ -1,8 +1,12 @@
 # Copyright 2023 Dixmit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+import logging
 
 from odoo import fields, models
 from odoo.tools import float_is_zero
+from odoo.tools.misc import formatLang
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountReconcileAbstract(models.AbstractModel):
@@ -55,23 +59,11 @@ class AccountReconcileAbstract(models.AbstractModel):
             currency = line.currency_id or line.company_id.currency_id
             original_amount = net_amount = -line.amount_residual
             if max_amount:
-                dest_currency = self._get_reconcile_currency()
-                if currency == dest_currency:
-                    real_currency_amount = currency_amount
-                elif self.company_id.currency_id == dest_currency:
-                    real_currency_amount = amount
-                else:
-                    real_currency_amount = self.company_id.currency_id._convert(
-                        amount,
-                        dest_currency,
-                        self.company_id,
-                        date,
-                    )
                 if (
-                    -real_currency_amount > max_amount > 0
-                    or -real_currency_amount < max_amount < 0
+                    -amount > max_amount > 0
+                    or -amount < max_amount < 0
                 ):
-                    currency_max_amount = self._get_reconcile_currency()._convert(
+                    currency_max_amount = self.company_id.currency_id._convert(
                         max_amount, currency, self.company_id, date
                     )
                     amount = currency_max_amount
@@ -124,6 +116,8 @@ class AccountReconcileAbstract(models.AbstractModel):
         ):
             vals["original_amount"] = abs(original_amount)
             vals["original_amount_unsigned"] = original_amount
+            residual = abs(original_amount) - abs(amount)
+            vals["residual_amount_format"] = formatLang(self.env, residual, currency_obj=self.company_id.currency_id)
         if is_counterpart:
             vals["counterpart_line_ids"] = line.ids
         return [vals]
