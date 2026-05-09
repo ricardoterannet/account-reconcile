@@ -150,7 +150,7 @@
                             class="text-end o_field_account_reconcile_oca_balance_float"
                         >
                             <div
-                                t-esc="reconcile_line.debit_format"
+                                t-esc="reconcile_line.residual_amount_format ? reconcile_line.residual_amount_format : reconcile_line.debit_format"
                                 t-if="reconcile_line.amount &gt; 0"
                             />
                             <div
@@ -163,7 +163,7 @@
                             class="text-end o_field_account_reconcile_oca_balance_float"
                         >
                             <div
-                                t-esc="reconcile_line.credit_format"
+                                t-esc="reconcile_line.residual_amount_format ? reconcile_line.residual_amount_format : reconcile_line.credit_format"
                                 t-if="reconcile_line.amount &lt; 0"
                             />
                             <div
