@@ -59,7 +59,7 @@ class AccountAccountReconcile(models.Model):
                     END as partner_id,
                 a.id as account_id,
                 FALSE as is_reconciled,
-                aml.currency_id as currency_id,
+                MAX(aml.currency_id) as currency_id,
                 a.company_id,
                 null as foreign_currency_id,
                 (
@@ -99,7 +99,6 @@ class AccountAccountReconcile(models.Model):
                         THEN aml.partner_id
                     ELSE NULL
                 END,
-                aml.currency_id,
                 a.company_id
         """
 
